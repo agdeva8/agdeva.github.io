@@ -28,10 +28,19 @@ class State {
   constructor() {
     this.board = new Array(nRows);
     
-    for (var i = 0; i < this.board.length; this.board++) {
+    for (var i = 0; i < this.board.length; i++) {
       this.board[i] = new Array(nCols);
     }
+    
+    for (i = 0; i < nRows; i++) {
+      for (var j = 0; j < nCols; j++) {
+          this.board[i][j] = 0;
+        }
+    }
 
+    this.nRows = nRows;
+    this.nCols = nCols;
+    
     this.player = 1;
   }
 }
@@ -139,6 +148,7 @@ function statusBarUpdate(col, state) {
   var height = 25
 
   ctx.clearRect(x, y, width, height)
+  ctx.fillStyle = bgColor;
   ctx.fillRect(x, y, width, height)
 
   if (!isValidRC(0, col)) {
@@ -154,7 +164,7 @@ function statusBarUpdate(col, state) {
   
   [x, y] = centerFromRC(0, col);
   y = startGrid_y - 25 
-  // the triangle
+  // // the triangle
   ctx.beginPath();
   ctx.moveTo(x - 4, y - 5);
   ctx.lineTo(x, y);
@@ -165,17 +175,41 @@ function statusBarUpdate(col, state) {
   ctx.strokeStyle = diskColor[state.player];
   ctx.stroke();
 
-  // ctx.fillStyle = diskColor[state.player];
-  // ctx.fill();
+  ctx.fillStyle = diskColor[state.player];
+  ctx.fill();
 
 }
 
+function performAction(col, state) {
+  if (!isValidRC(0, col))
+    return false
+  
+  var row = state.nRows - 1;
+  
+  while (row >= 0) {
+    if (state.board[row][col] == 0)
+      break;
+    row--;
+  }
+  
+  if (row < 0)
+    return false
+
+  state.board[row][col] = state.player
+  state.player *= -1
+  fillDisk(row, col, state)
+
+  return true
+}
+
+console.log("Plyaer is " + currState.player)
 function draw() {
   var currRow, currCol;
   [currRow, currCol] = RCFromXY(currMouse_x, currMouse_y);
   
   if (isValidRC(currRow, currCol)) {
-    console.log("curr Row is " + currRow + " and Col is " + currCol); 
+    performAction(currCol, currState)
+  //   console.log("curr Row is " + currRow + " and Col is " + currCol); 
   }
   
   statusBarUpdate(currCol, currState)
