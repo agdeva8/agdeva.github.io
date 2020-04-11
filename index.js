@@ -127,6 +127,7 @@ createGrid()
 // Mouse Move Handler
 document.addEventListener("mousemove", mouseMoveHandler, false);
 
+
 function mouseMoveHandler(e) {
   var relativeX = e.clientX - canvas.offsetLeft;
   if(relativeX > 0 && relativeX < canvas.width) {
@@ -137,6 +138,21 @@ function mouseMoveHandler(e) {
   if(relativeY > 0 && relativeY < canvas.height) {
     currMouse_y = relativeY;
   }
+}
+
+document.addEventListener("click", mouseClickHandler, false);
+function mouseClickHandler(e) {
+  var x = e.clientX - canvas.offsetLeft;
+  var y = e.clientY - canvas.offsetTop;
+  if ((x > 0 && x < canvas.width) && 
+      (y > 0 && y < canvas.height)) {
+
+    var row, col;
+    [row, col] = RCFromXY(x, y)
+
+    console.log("Performing Action")
+    return performAction(col, currState)
+  } 
 }
 
 function statusBarUpdate(col, state) {
@@ -208,12 +224,16 @@ function draw() {
   [currRow, currCol] = RCFromXY(currMouse_x, currMouse_y);
   
   if (isValidRC(currRow, currCol)) {
-    performAction(currCol, currState)
+    // performAction(currCol, currState)
   //   console.log("curr Row is " + currRow + " and Col is " + currCol); 
   }
   
   statusBarUpdate(currCol, currState)
 
+  // Mouse Click Handler
+  // document.addEventListener("click", mouseClickHandler, false);
+
+  // document.removeEventListener("click", mouseClickHandler, false);
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
   // ctx.beginPath();
   // createCell(x, y)
