@@ -1,24 +1,28 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
+
 var nRows = 6
 var nCols = 7
 
-var startGrid_x = 20
-var startGrid_y = 20 
+var startGrid_x = 100
+var startGrid_y = 100 
 var cell_width = 60
 var cell_height = 60
 
 var currMouse_x;
 var currMouse_y;
 
-var bgColor = "white"
+var bgColor = "grey"
 var diskRadius = cell_width / 2 - 8;
 
 var diskColor = {
   '1': "yellow",
   '-1': "red"
 };
+
+ctx.fillStyle = bgColor; 
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 class State {
   constructor() {
@@ -36,15 +40,15 @@ class State {
 var currState = new State();
 
 function RCFromXY(x, y) {
-    var col = Math.floor((x - 50) / cell_width);
-    var row = Math.floor((y - 50) / cell_height);
+    var col = Math.floor((x - startGrid_x) / cell_width);
+    var row = Math.floor((y - startGrid_y) / cell_height);
     
     return [row, col];
 }
 
 function XYFromRC(row, col) {
-  var x = startGrid_x + col * cell_width + cell_width / 2;
-  var y = startGrid_y + row * cell_height + cell_height / 2;  
+  var x = startGrid_x + col * cell_width
+  var y = startGrid_y + row * cell_height  
   return [x, y];
 }
 
@@ -127,6 +131,42 @@ function mouseMoveHandler(e) {
 }
 
 function statusBarUpdate(col, state) {
+  var x, y;
+
+  x = startGrid_x;
+  y = startGrid_y - 40
+  var width = cell_width * nCols;
+  var height = 25
+
+  ctx.clearRect(x, y, width, height)
+  ctx.fillRect(x, y, width, height)
+
+  if (!isValidRC(0, col)) {
+    return 
+  }
+
+  // ctx.beginPath();
+  // ctx.lineWidth = "2";
+  // ctx.strokeStyle = "black";
+  // ctx.rect(x, y, width, height); 
+  // ctx.stroke();
+  // ctx.closePath();
+  
+  [x, y] = centerFromRC(0, col);
+  y = startGrid_y - 25 
+  // the triangle
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y - 5);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + 4, y - 5);
+  ctx.closePath();
+
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = diskColor[state.player];
+  ctx.stroke();
+
+  // ctx.fillStyle = diskColor[state.player];
+  // ctx.fill();
 
 }
 
@@ -137,6 +177,8 @@ function draw() {
   if (isValidRC(currRow, currCol)) {
     console.log("curr Row is " + currRow + " and Col is " + currCol); 
   }
+  
+  statusBarUpdate(currCol, currState)
 
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
   // ctx.beginPath();
