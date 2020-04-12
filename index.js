@@ -200,6 +200,28 @@ function statusBarUpdate(col, state) {
 
 }
 
+function showCheckMatePattern(r, c, i, j, nConnect) {
+
+  var x, y;
+  for (var itr = 0; itr < nConnect; itr++) {
+    [x, y] = centerFromRC(r + i * itr, c + j * itr);
+    ctx.beginPath();
+    ctx.arc(x, y, 0.1 * diskRadius, 0, Math.PI * 2)
+    ctx.fillStyle = "black"
+    ctx.fill()
+    ctx.closePath();
+  }
+  
+  var x0, y0;
+  [x0, y0] = centerFromRC(r, c);
+
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x, y);
+  ctx.strokeStyle = "black"
+  ctx.stroke();
+}
+
 function isCheckMate(state) {
   var nConnect = 4
   
@@ -231,6 +253,7 @@ function isCheckMate(state) {
         }
         // console.log("count is " + count)
         if (count == nConnect) {
+          showCheckMatePattern(row, col, ijPattern[i][0], ijPattern[i][1], nConnect)
           return true
         }
       }
@@ -301,17 +324,15 @@ function draw() {
   // console.log("Refreshed")
   // console.log("yes")
   if (!mouseClickOn) {
-    // console.log("next Player Change")
+    mouseClickOn = true
+
     if (isCheckMate(currState)) {
       d_isCheckMate = true
       currState.player *= -1
       showCurrPlayer("WINNER", currState)
+      mouseClickOn = false
    }
-    
-    // for (var i = 0; i < nCols; i++)
-    //   console.log(currState.board[nRows - 1][i])
 
-    mouseClickOn = true
   }
 }
 setInterval(draw, 10);
