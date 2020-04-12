@@ -7,14 +7,15 @@ var nCols = 7
 
 var startGrid_x = 100
 var startGrid_y = 100 
-var cell_width = 60
-var cell_height = 60
+var cell_width = 120
+var cell_height = 120
 
 var currMouse_x;
 var currMouse_y;
+var mouseClickOn;
 
 var bgColor = "grey"
-var diskRadius = cell_width / 2 - 8;
+var diskRadius = cell_width / 2 - 0.15 * cell_width;
 
 var diskColor = {
   '1': "yellow",
@@ -86,9 +87,7 @@ function createCell(row, col) {
   ctx.closePath();
 }
 
-function createDisk(row, col, color) {
-  const [x, y] = centerFromRC(row, col)
-
+function createDiskFromXY(x, y, color) {
   ctx.beginPath();
   ctx.lineWidth = "2";
   ctx.strokeStyle = "black";
@@ -97,6 +96,11 @@ function createDisk(row, col, color) {
   ctx.fillStyle = color;
   ctx.fill();
   ctx.closePath();
+}
+
+function createDisk(row, col, color) {
+  const [x, y] = centerFromRC(row, col)
+  createDiskFromXY(x, y, color)
 }
 
 function emptyDisk(row, col) {
@@ -141,7 +145,11 @@ function mouseMoveHandler(e) {
 }
 
 document.addEventListener("click", mouseClickHandler, false);
+
 function mouseClickHandler(e) {
+  if (!mouseClickOn)
+    return
+
   var x = e.clientX - canvas.offsetLeft;
   var y = e.clientY - canvas.offsetTop;
   if ((x > 0 && x < canvas.width) && 
@@ -151,7 +159,8 @@ function mouseClickHandler(e) {
     [row, col] = RCFromXY(x, y)
 
     console.log("Performing Action")
-    return performAction(col, currState)
+    if (performAction(col, currState))
+      mouseClickOn = false
   } 
 }
 
@@ -212,13 +221,26 @@ function performAction(col, state) {
     return false
 
   state.board[row][col] = state.player
-  state.player *= -1
   fillDisk(row, col, state)
+  state.player *= -1
 
   return true
 }
 
-console.log("Plyaer is " + currState.player)
+function showCurrPlayer(state) {
+  var x, y;
+
+  [x, y] = centerFromRC(state.nRows - 1, state.nCols - 1)
+
+  y += cell_height + 20;
+   
+  ctx.font = "50px Georgia";
+  ctx.fillStyle = "green" 
+  ctx.textAlign = "right"; 
+  ctx.fillText("Player", x - diskRadius - 40, y + 20);
+  createDiskFromXY(x, y, diskColor[state.player])
+}
+
 function draw() {
   var currRow, currCol;
   [currRow, currCol] = RCFromXY(currMouse_x, currMouse_y);
@@ -229,19 +251,12 @@ function draw() {
   }
   
   statusBarUpdate(currCol, currState)
+  showCurrPlayer(currState)
+  
+  // console.log("Refreshed")
+  if (!mouseClickOn)
+    // console.log("next Player Change")
+    mouseClickOn = true
 
-  // Mouse Click Handler
-  // document.addEventListener("click", mouseClickHandler, false);
-
-  // document.removeEventListener("click", mouseClickHandler, false);
-  // ctx.clearRect(0, 0, canvas.width, canvas.height)
-  // ctx.beginPath();
-  // createCell(x, y)
-  // ctx.arc(x, y, 10, 0, Math.PI*2);
-  // ctx.fillStyle = "#0095DD";
-  // ctx.fill();
-  // ctx.closePath();
-  // x += dx
-  // y += dy
  }
 setInterval(draw, 10);
