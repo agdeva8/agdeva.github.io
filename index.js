@@ -17,6 +17,8 @@ var mouseClickOn;
 var bgColor = "grey"
 var diskRadius = cell_width / 2 - 0.15 * cell_width;
 
+var d_isCheckMate = false;
+
 var diskColor = {
   '1': "yellow",
   '-1': "red"
@@ -121,16 +123,10 @@ function createGrid() {
   }
 }
 
-// emptyDisk(startGrid_x, startGrid_y)
-// createCell(startGrid_x, startGrid_y)
 createGrid()
-// fillDisk(1, 2, currState);
-// createDisk(1, 2, currState);
-
 
 // Mouse Move Handler
 document.addEventListener("mousemove", mouseMoveHandler, false);
-
 
 function mouseMoveHandler(e) {
   var relativeX = e.clientX - canvas.offsetLeft;
@@ -158,7 +154,6 @@ function mouseClickHandler(e) {
     var row, col;
     [row, col] = RCFromXY(x, y)
 
-    console.log("Performing Action")
     if (performAction(col, currState))
       mouseClickOn = false
   } 
@@ -205,6 +200,45 @@ function statusBarUpdate(col, state) {
 
 }
 
+function isCheckMate(state) {
+  var nConnect = 4
+  
+  var ijPattern = [
+    [1, 0],
+    [0, 1],
+    [1, 1],
+    [1, -1]
+  ];
+  var count = 0
+
+  for (var i = 0; i < 4; i++) {
+
+    for (var row = 0; row < state.nRows; row++) {
+      for (var col = 0; col < state.nCols; col++) {
+
+        if (state.board[row][col] == 0)
+          continue
+        count = 0;
+
+        for (var j = 0; j < nConnect; j++) {
+          var cRow = row + ijPattern[i][0] * j 
+          var cCol = col + ijPattern[i][1] * j
+          if (!isValidRC(cRow, cCol))
+            continue
+          
+          if (state.board[row][col] == state.board[cRow][cCol])
+            count++;
+        }
+        // console.log("count is " + count)
+        if (count == nConnect) {
+          return true
+        }
+      }
+    }
+  }
+  return false
+}  
+
 function performAction(col, state) {
   if (!isValidRC(0, col))
     return false
@@ -227,17 +261,26 @@ function performAction(col, state) {
   return true
 }
 
-function showCurrPlayer(state) {
+function showCurrPlayer(text, state) {
   var x, y;
 
   [x, y] = centerFromRC(state.nRows - 1, state.nCols - 1)
-
   y += cell_height + 20;
+  
+  var width = cell_width * 3;
+  var height = cell_height
+
+  var startX = startGrid_x + 4 * cell_width
+  var startY = y - 55
+
+  ctx.clearRect(startX, startY, width, height)
+  ctx.fillStyle = "grey";
+  ctx.fillRect(startX, startY, width, height)
    
   ctx.font = "50px Georgia";
   ctx.fillStyle = "green" 
   ctx.textAlign = "right"; 
-  ctx.fillText("Player", x - diskRadius - 40, y + 20);
+  ctx.fillText(text, x - diskRadius - 40, y + 20);
   createDiskFromXY(x, y, diskColor[state.player])
 }
 
@@ -246,17 +289,29 @@ function draw() {
   [currRow, currCol] = RCFromXY(currMouse_x, currMouse_y);
   
   if (isValidRC(currRow, currCol)) {
-    // performAction(currCol, currState)
-  //   console.log("curr Row is " + currRow + " and Col is " + currCol); 
+    statusBarUpdate(currCol, currState)
   }
   
-  statusBarUpdate(currCol, currState)
-  showCurrPlayer(currState)
-  
-  // console.log("Refreshed")
-  if (!mouseClickOn)
-    // console.log("next Player Change")
-    mouseClickOn = true
+  if (d_isCheckMate) {
+    return
+  }
 
- }
+  showCurrPlayer("PLAYER", currState)
+   
+  // console.log("Refreshed")
+  // console.log("yes")
+  if (!mouseClickOn) {
+    // console.log("next Player Change")
+    if (isCheckMate(currState)) {
+      d_isCheckMate = true
+      currState.player *= -1
+      showCurrPlayer("WINNER", currState)
+   }
+    
+    // for (var i = 0; i < nCols; i++)
+    //   console.log(currState.board[nRows - 1][i])
+
+    mouseClickOn = true
+  }
+}
 setInterval(draw, 10);
